@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Alliance Matrix 11x9</title>
+    
+    <!-- Google Fonts: Outfit for a modern and clean look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- DESIGN SYSTEM & CSS VARIABLES --- */
+        :root {
+            --bg-gradient: radial-gradient(circle at 50% 50%, #111224 0%, #06070c 100%);
+            --panel-bg: rgba(255, 255, 255, 0.03);
+            --panel-border: rgba(255, 255, 255, 0.07);
+            
+            /* Cell Colors */
+            --cell-inactive: rgba(255, 255, 255, 0.04);
+            --cell-inactive-border: rgba(255, 255, 255, 0.08);
+            --cell-active-color: #00f2fe;
+            --cell-active-glow: rgba(0, 242, 254, 0.4);
+            
+            --center-border: #ff007f;
+            --center-glow: rgba(255, 0, 127, 0.35);
+            
+            /* Typography */
+            --font-main: 'Outfit', sans-serif;
+            
+            /* Animations */
+            --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- GLOBAL STYLES --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-gradient);
+            color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Decorative Elements */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+        body::before { top: 5%; left: 5%; }
+        body::after { bottom: 5%; right: 5%; }
+
+        /* --- APP LAYOUT (3 COLUMNS) --- */
+        .app-container {
+            width: 100%;
+            max-width: 1400px;
+            display: grid;
+            grid-template-columns: 350px 1fr 320px;
+            gap: 1.5rem;
+            align-items: start;
+            z-index: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* --- PANELS (GLASSMORPHISM) --- */
+        .glass-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        /* Panel Header */
+        .panel-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 0.8rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .panel-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-header p {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            font-weight: 300;
+            margin-top: 2px;
+        }
+
+        /* --- COLUMN 1: MEMBER LIST & EDITOR --- */
+        .editor-container {
+            max-height: calc(100vh - 80px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (max-width: 1200px) {
+            .editor-container {
+                max-height: none;
+            }
+        }
+
+        /* Search input */
+        .search-box {
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 0.6rem 0.8rem;
+            color: white;
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            transition: var(--transition-smooth);
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--cell-active-color);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        /* Member Form */
+        .add-member-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 0.8rem;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 0.5rem;
+        }
+        .add-member-form input {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.5rem;
+            color: white;
+            font-family: var(--font-main);
+            font-size: 0.8rem;
+        }
+        .add-member-form input:focus {
+            outline: none;
+            border-color: var(--cell-active-color);
+        }
+
+        /* Member Scroll List */
+        .member-list-scroll {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding-right: 4px;
+            max-height: 420px;
+        }
+        
+        /* Custom scrollbar */
+        .member-list-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .member-list-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 3px;
+        }
+        .member-list-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        .member-list-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Member List Card */
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 0.6rem 0.8rem;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            position: relative;
+        }
+        .member-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+        .member-item.highlighted {
+            background: rgba(99, 102, 241, 0.15) !important;
+            border-color: rgba(99, 102, 241, 0.4) !important;
+        }
+        .member-item-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 73%;
+        }
+        .member-rank {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--cell-active-color);
+            margin-right: 6px;
+        }
+        .member-name-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .member-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+            color: #e5e7eb;
+        }
+        .member-grid-pos {
+            font-size: 0.68rem;
+            background: rgba(0, 242, 254, 0.1);
+            color: var(--cell-active-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        .member-grid-pos.reserve {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+        .member-stats {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        
+        /* Actions container on the card */
+        .member-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            z-index: 10;
+        }
+
+        .btn-edit {
+            background: transparent;
+            border: none;
+            color: var(--cell-active-color);
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition-smooth);
+            opacity: 0.6;
+        }
+        .btn-edit:hover {
+            background: rgba(0, 242, 254, 0.15);
+            opacity: 1;
+        }
+
+        .btn-delete {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition-smooth);
+            opacity: 0.6;
+        }
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ff5555;
+            opacity: 1;
+        }
+
+        /* --- COLUMN 2: GRID PANEL --- */
+        .grid-panel {
+            align-items: center;
+            justify-content: center;
+            padding: 1.8rem;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 7px;
+            width: 100%;
+            max-width: 440px;
+            aspect-ratio: 9 / 11;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* --- CELLS --- */
+        .cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+            z-index: 1;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Inactive common cell */
+        .cell.inactive {
+            background-color: var(--cell-inactive);
+            border: 1px solid var(--cell-inactive-border);
+            opacity: 0.25;
+            cursor: default;
+        }
+
+        /* Active common cell (Member Present) */
+        .cell.active {
+            background-color: rgba(255, 255, 255, 0.02);
+            background-image: url('cell_icon.png');
+            opacity: 0.55;
+            filter: grayscale(45%) brightness(0.9);
+            border: 1px solid var(--cell-inactive-border);
+        }
+
+        /* Hover on active cells */
+        .cell.active:hover {
+            opacity: 0.9;
+            filter: grayscale(0%) brightness(1.1);
+            border-color: var(--cell-active-color) !important;
+            box-shadow: 0 0 14px var(--cell-active-glow) !important;
+            transform: scale(1.1);
+            z-index: 5;
+        }
+
+        /* Highlighted cell by list hover */
+        .cell.highlighted-cell {
+            transform: scale(1.15) !important;
+            border-color: #ffffff !important;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.75) !important;
+            filter: grayscale(0%) brightness(1.1) !important;
+            opacity: 1 !important;
+            z-index: 10 !important;
+        }
+
+        /* Central Vacant Cell (Robot/Command Center) */
+        .cell.vacant {
+            background-color: rgba(255, 0, 127, 0.05);
+            background-image: url('center_icon.png');
+            border: 2px solid var(--center-border) !important;
+            box-shadow: 0 0 15px var(--center-glow);
+            cursor: not-allowed;
+            animation: pulse-center 2.5s infinite ease-in-out;
+            opacity: 1 !important;
+            filter: grayscale(0%) !important;
+        }
+
+        /* Center Pulse animation */
+        @keyframes pulse-center {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 10px var(--center-glow), inset 0 0 5px var(--center-glow);
+                filter: brightness(1);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 18px var(--center-glow), inset 0 0 8px var(--center-glow);
+                filter: brightness(1.25);
+            }
+        }
+
+        /* Cell power label overlay */
+        .cell-badge {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #ffffff;
+            font-size: 0.58rem;
+            font-weight: 700;
+            padding: 1px 3px;
+            border-radius: 3px;
+            pointer-events: none;
+            font-family: monospace;
+            backdrop-filter: blur(2px);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            z-index: 2;
+        }
+
+        /* Concentration rings mode activated */
+        .show-rings .cell.active {
+            border: 1.5px solid var(--ring-color) !important;
+            box-shadow: 0 0 8px var(--ring-color-glow);
+            opacity: 0.75;
+            filter: grayscale(10%) brightness(0.9);
+        }
+        .show-rings .cell.active:hover {
+            opacity: 1;
+            filter: grayscale(0%) brightness(1.1);
+            box-shadow: 0 0 16px var(--ring-color-glow) !important;
+        }
+
+        /* --- COLUMN 3: DETAILS & STATS --- */
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .focus-detail-card {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            min-height: 180px;
+            transition: var(--transition-smooth);
+        }
+
+        .focus-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.5rem;
+        }
+        .focus-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #a5b4fc;
+        }
+
+        .focus-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .focus-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+        .focus-val {
+            font-weight: 600;
+            color: #f3f4f6;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .info-label {
+            color: #9ca3af;
+        }
+
+        .info-value {
+            color: #f3f4f6;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Control Toggles */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 0.4rem 0;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 11px;
+            transition: var(--transition-smooth);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            transition: var(--transition-smooth);
+        }
+        .toggle-input {
+            display: none;
+        }
+        .toggle-input:checked + .toggle-switch {
+            background: var(--cell-active-color);
+        }
+        .toggle-input:checked + .toggle-switch::after {
+            transform: translateX(18px);
+        }
+
+        .coordinate-badge {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            color: #f3f4f6;
+            font-weight: 600;
+        }
+
+        /* Ring Colors Reference */
+        .ring-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            padding: 0.6rem;
+        }
+        .ring-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .ring-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- COLUMN 1: MEMBER LIST & EDITOR -->
+        <div class="glass-panel editor-container">
+            <div class="panel-header">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Alliance Members
+                </h2>
+                <p>Add, filter and remove members from the grid.</p>
+            </div>
+
+            <!-- Form to Add Member -->
+            <div class="add-member-form">
+                <input type="text" id="input-nick" placeholder="Member Nickname" autocomplete="off">
+                <div class="form-row" style="margin-top: 0.4rem;">
+                    <input type="text" id="input-power" placeholder="Power (e.g. 35.0M)">
+                    <input type="number" id="input-level" placeholder="Base Level (e.g. 25)">
+                </div>
+                <button class="btn btn-primary" id="btn-add-member" style="margin-top: 0.6rem; padding: 0.5rem; font-size: 0.8rem; width: 100%; display: flex; justify-content: center; align-items: center;">
+                    + Add to List
+                </button>
+            </div>
+
+            <!-- Search -->
+            <div class="search-box">
+                <input type="text" id="search-member" placeholder="🔍 Search by nickname...">
+            </div>
+
+            <!-- Scrollable Member List -->
+            <div class="member-list-scroll" id="member-list-items">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+
+        <!-- COLUMN 2: MATRIX GRID -->
+        <div class="glass-panel grid-panel">
+            <div class="matrix-grid" id="grid">
+                <!-- Cells generated via Javascript -->
+            </div>
+        </div>
+
+        <!-- COLUMN 3: STATS & FOCUS DETAILS -->
+        <div class="glass-panel stats-container">
+            <div class="panel-header">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                    Tactical Panel
+                </h2>
+                <p>Real-time mapping statistics.</p>
+            </div>
+
+            <!-- Information Dashboard -->
+            <div class="info-card">
+                <div class="info-row">
+                    <span class="info-label">Dimensions:</span>
+                    <span class="info-value">11 × 9</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Max Capacity:</span>
+                    <span class="info-value">98 Members + 1 Center</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Registered:</span>
+                    <span class="info-value" id="stat-registered">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Allocated on Grid:</span>
+                    <span class="info-value" id="stat-active" style="color: #60efff;">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">On Waiting List/Reserve:</span>
+                    <span class="info-value" id="stat-reserve" style="color: #9ca3af;">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Command Center:</span>
+                    <span class="info-value"><span class="coordinate-badge" style="color: var(--center-border);" id="lbl-center-coord">X:566 Y:438</span></span>
+                </div>
+            </div>
+
+            <!-- Radar Focus Card -->
+            <div class="focus-detail-card">
+                <div class="focus-header">
+                    <span class="focus-title" id="focus-title">Radar Focus</span>
+                    <span class="coordinate-badge" id="focus-coord">None</span>
+                </div>
+                <div class="focus-body" id="focus-body">
+                    <div style="color: #6b7280; font-size: 0.85rem; text-align: center; margin-top: 2.5rem; font-weight: 300;">
+                        Hover over the grid cells or list items to inspect.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Options -->
+            <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                <label class="toggle-container">
+                    <span>Show Concentration Rings</span>
+                    <input type="checkbox" id="toggle-rings" class="toggle-input">
+                    <div class="toggle-switch"></div>
+                </label>
+                <div class="ring-legend" id="ring-legend-container" style="display: none; margin-top: 0.4rem;">
+                    <div class="ring-legend-item"><div class="ring-dot" style="background: #00f2fe;"></div><span>Ring 1 (Inner)</span></div>
+                    <div class="ring-legend-item"><div class="ring-dot" style="background: #a855f7;"></div><span>Ring 2 (Mid-Inner)</span></div>
+                    <div class="ring-legend-item"><div class="ring-dot" style="background: #3b82f6;"></div><span>Ring 3 (Mid-Outer)</span></div>
+                    <div class="ring-legend-item"><div class="ring-dot" style="background: #6b7280;"></div><span>Ring 4 (Outer)</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Default Member List -->
+    <script>
+        const defaultMembers = [
+            { nickname: "000ooXoo000", power: "39.7M", level: "27" },
+            { nickname: "AFigueroa", power: "26.6M", level: "22" },
+            { nickname: "Alejandro 1832", power: "15.7M", level: "22" },
+            { nickname: "ALs goodinthehood", power: "32.0M", level: "23" },
+            { nickname: "Axeassassan", power: "44.2M", level: "27" },
+            { nickname: "bb gun85", power: "52.0M", level: "26" },
+            { nickname: "Betowan", power: "20.9M", level: "23" },
+            { nickname: "Big Maui", power: "31.1M", level: "26" },
+            { nickname: "Blue brick", power: "40.7M", level: "25" },
+            { nickname: "Bonallac", power: "28.9M", level: "26" },
+            { nickname: "BrezTheKJ", power: "40.9M", level: "27" },
+            { nickname: "capitán moon", power: "26.9M", level: "23" },
+            { nickname: "Captain Dean0", power: "21.1M", level: "23" },
+            { nickname: "Castilla77", power: "38.0M", level: "26" },
+            { nickname: "CBP175", power: "26.3M", level: "26" },
+            { nickname: "Chariz95", power: "16.0M", level: "23" },
+            { nickname: "chiarisima", power: "31.2M", level: "21" },
+            { nickname: "congo2302", power: "19.0M", level: "23" },
+            { nickname: "Copsnrobbers9322", power: "39.4M", level: "26" },
+            { nickname: "crlsxxv", power: "44.6M", level: "21" },
+            { nickname: "Da Packers", power: "20.8M", level: "24" },
+            { nickname: "Dagon OTMG", power: "38.6M", level: "25" },
+            { nickname: "DEV DONKEY", power: "37.6M", level: "27" },
+            { nickname: "Diann93", power: "9.2M", level: "21" },
+            { nickname: "DKSpoon", power: "10.9M", level: "24" },
+            { nickname: "Dlove 2", power: "39.5M", level: "26" },
+            { nickname: "dozy d 89", power: "29.0M", level: "24" },
+            { nickname: "DøC 닥", power: "45.8M", level: "28" },
+            { nickname: "Dreec23", power: "39.6M", level: "25" },
+            { nickname: "Dsr20", power: "8.8M", level: "22" },
+            { nickname: "El Argentino ortiva", power: "28.0M", level: "23" },
+            { nickname: "existentialchrisis", power: "41.5M", level: "26" },
+            { nickname: "floripondiO", power: "35.0M", level: "25" },
+            { nickname: "Foritas", power: "36.1M", level: "25" },
+            { nickname: "FORT SOXX", power: "50.4M", level: "26" },
+            { nickname: "GAZOL", power: "24.5M", level: "23" },
+            { nickname: "GITI2TWIN", power: "15.8M", level: "23" },
+            { nickname: "GORGAR", power: "23.0M", level: "21" },
+            { nickname: "HAJAR2025", power: "16.3M", level: "22" },
+            { nickname: "Heyomelatonin", power: "15.4M", level: "23" },
+            { nickname: "Hgjfg", power: "18.5M", level: "24" },
+            { nickname: "Hibyemf", power: "20.4M", level: "25" },
+            { nickname: "ICARO BRUNO", power: "41.6M", level: "25" },
+            { nickname: "IIIIIIIIIIII", power: "35.2M", level: "25" },
+            { nickname: "In Transit", power: "51.5M", level: "27" },
+            { nickname: "ItzeelSm", power: "14.6M", level: "18" },
+            { nickname: "JanoGrey", power: "23.4M", level: "22" },
+            { nickname: "Jonas Ene", power: "37.3M", level: "25" },
+            { nickname: "JPardo", power: "26.4M", level: "25" },
+            { nickname: "KinG74", power: "36.7M", level: "25" },
+            { nickname: "KingBob6767", power: "34.1M", level: "24" },
+            { nickname: "laffayette", power: "26.7M", level: "25" },
+            { nickname: "Leftyxxx300", power: "31.3M", level: "25" },
+            { nickname: "Letscook", power: "33.4M", level: "25" },
+            { nickname: "Lucky37", power: "44.1M", level: "25" },
+            { nickname: "Lynnwell", power: "35.9M", level: "26" },
+            { nickname: "MaiDo12", power: "52.1M", level: "24" },
+            { nickname: "makavil", power: "11.3M", level: "22" },
+            { nickname: "mimbu", power: "16.8M", level: "24" },
+            { nickname: "No gjjf", power: "37.2M", level: "25" },
+            { nickname: "nonsensicle", power: "61.4M", level: "27" },
+            { nickname: "O VELHOTE MAIS PICA", power: "35.5M", level: "28" },
+            { nickname: "OfficerSniperDoc", power: "46.7M", level: "24" },
+            { nickname: "OGKoldkilla", power: "15.7M", level: "19" },
+            { nickname: "Oklahoma01", power: "46.0M", level: "27" },
+            { nickname: "panelon", power: "21.7M", level: "23" },
+            { nickname: "PELÚCIA DONKEY", power: "37.6M", level: "27" },
+            { nickname: "Plinythegreat", power: "33.0M", level: "24" },
+            { nickname: "PriscilaAMendes", power: "40.0M", level: "25" },
+            { nickname: "RamiroDamian", power: "49.6M", level: "24" },
+            { nickname: "RAZORBACKS94", power: "65.0M", level: "27" },
+            { nickname: "rcathee", power: "32.1M", level: "26" },
+            { nickname: "Rowdy Beast", power: "36.4M", level: "27" },
+            { nickname: "Salvatore617", power: "42.9M", level: "25" },
+            { nickname: "SHORTYB25", power: "23.9M", level: "25" },
+            { nickname: "SIMBA 6060", power: "49.0M", level: "24" },
+            { nickname: "SinisterOi", power: "59.4M", level: "28" },
+            { nickname: "SinSir13", power: "36.6M", level: "25" },
+            { nickname: "SIQ Skayr", power: "41.2M", level: "27" },
+            { nickname: "SNIPERFANTASMA", power: "34.3M", level: "24" },
+            { nickname: "Stephoooooo", power: "27.6M", level: "25" },
+            { nickname: "Stobs91", power: "20.2M", level: "24" },
+            { nickname: "SWAMP DONKEY", power: "58.1M", level: "27" },
+            { nickname: "thais0305", power: "23.5M", level: "24" },
+            { nickname: "TheeRogueWarrior", power: "48.5M", level: "27" },
+            { nickname: "TOOTSIE TV", power: "20.9M", level: "24" },
+            { nickname: "TrippStar2", power: "41.8M", level: "26" },
+            { nickname: "Venom1211", power: "18.2M", level: "25" },
+            { nickname: "Vhtr", power: "29.5M", level: "25" },
+            { nickname: "WyConndor", power: "56.7M", level: "25" },
+            { nickname: "yarithh", power: "24.0M", level: "24" },
+            { nickname: "Zacwyld", power: "30.6M", level: "25" },
+            { nickname: "ZombieDOWN", power: "17.3M", level: "22" },
+            { nickname: "ロカンラバー", power: "42.0M", level: "26" }
+        ];
+    </script>
+
+    <!-- Matrix Logic and Control Script -->
+    <script>
+        const ROWS = 11;
+        const COLS = 9;
+        const CENTER_ROW = 5;
+        const CENTER_COL = 4;
+
+        // Helper to calculate custom game coordinates
+        // row: 0-indexed (0 to 10), col: 0-indexed (0 to 8)
+        // bottom-most row 11 (r=10) col 1 (c=0) -> X: 554, Y: 450
+        // bottom-most row 11 (r=10) col 2 (c=1) -> X: 557, Y: 447
+        // row 10 (r=9) col 1 (c=0) -> X: 554, Y: 450
+        function getCellCoordinates(r, c) {
+            const x = 554 + 3 * c;
+            const y = 450 - 3 * c;
+            return { x, y };
+        }
+
+        // Retrieve list from localStorage or use default
+        let members = JSON.parse(localStorage.getItem('alliance_members')) || [...defaultMembers];
+
+        const gridContainer = document.getElementById('grid');
+        const listItemsContainer = document.getElementById('member-list-items');
+        const focusTitle = document.getElementById('focus-title');
+        const focusCoord = document.getElementById('focus-coord');
+        const focusBody = document.getElementById('focus-body');
+        const statRegistered = document.getElementById('stat-registered');
+        const statActive = document.getElementById('stat-active');
+        const statReserve = document.getElementById('stat-reserve');
+        const toggleRings = document.getElementById('toggle-rings');
+        const ringLegendContainer = document.getElementById('ring-legend-container');
+        const searchInput = document.getElementById('search-member');
+        const lblCenterCoord = document.getElementById('lbl-center-coord');
+
+        const inputNick = document.getElementById('input-nick');
+        const inputPower = document.getElementById('input-power');
+        const inputLevel = document.getElementById('input-level');
+        const btnAddMember = document.getElementById('btn-add-member');
+
+        // Parse power string to number (e.g. "39.7M" -> 39.7)
+        function parsePower(powerStr) {
+            const val = parseFloat(powerStr.toString().replace(/[^\d.]/g, ''));
+            return isNaN(val) ? 0 : val;
+        }
+
+        // Calculate member combined strength score
+        function getMemberScore(member) {
+            const powerNum = parsePower(member.power);
+            const lvlNum = parseInt(member.level) || 0;
+            return (powerNum * 1000) + lvlNum;
+        }
+
+        // Returns members sorted by score descending
+        function getSortedMembers() {
+            return [...members].sort((a, b) => getMemberScore(b) - getMemberScore(a));
+        }
+
+        // Save members list to localStorage
+        function saveMembers() {
+            localStorage.setItem('alliance_members', JSON.stringify(members));
+        }
+
+        // Concentric distance cell sorting structure
+        let sortedCellPositions = [];
+        function initCellPositions() {
+            sortedCellPositions = [];
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (r === CENTER_ROW && c === CENTER_COL) continue;
+                    
+                    const dx = c - CENTER_COL;
+                    const dy = r - CENTER_ROW;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    sortedCellPositions.push({ r, c, dist });
+                }
+            }
+            sortedCellPositions.sort((a, b) => a.dist - b.dist);
+        }
+
+        // Grid representation map
+        let currentGridMap = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+
+        // Render Matrix Grid
+        function renderGrid() {
+            gridContainer.innerHTML = '';
+            currentGridMap = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+
+            const sortedMembers = getSortedMembers();
+
+            // Map sorted members to concentric sorted cells
+            sortedCellPositions.forEach((pos, index) => {
+                if (index < sortedMembers.length) {
+                    currentGridMap[pos.r][pos.c] = {
+                        ...sortedMembers[index],
+                        rank: index + 1,
+                        dist: pos.dist
+                    };
+                }
+            });
+
+            // Populate Grid Elements in DOM
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    
+                    const isCenter = (r === CENTER_ROW && c === CENTER_COL);
+                    
+                    if (isCenter) {
+                        cell.classList.add('vacant');
+                        cell.title = 'Command Center (Fixed)';
+                        
+                        cell.addEventListener('mouseenter', () => {
+                            showCenterDetails(r, c);
+                        });
+                    } else {
+                        const member = currentGridMap[r][c];
+                        if (member) {
+                            cell.classList.add('active');
+                            cell.id = `cell-${r}-${c}`;
+                            
+                            // Map distance rings and inject CSS variables
+                            const dist = member.dist;
+                            let ringColor, ringGlow;
+                            if (dist < 2.0) { // Ring 1
+                                ringColor = '#00f2fe';
+                                ringGlow = 'rgba(0, 242, 254, 0.4)';
+                            } else if (dist < 3.5) { // Ring 2
+                                ringColor = '#a855f7';
+                                ringGlow = 'rgba(168, 85, 247, 0.4)';
+                            } else if (dist < 5.0) { // Ring 3
+                                ringColor = '#3b82f6';
+                                ringGlow = 'rgba(59, 130, 246, 0.4)';
+                            } else { // Ring 4
+                                ringColor = '#6b7280';
+                                ringGlow = 'rgba(107, 114, 128, 0.3)';
+                            }
+                            cell.style.setProperty('--ring-color', ringColor);
+                            cell.style.setProperty('--ring-color-glow', ringGlow);
+
+                            // Add power overlay label
+                            const badge = document.createElement('span');
+                            badge.classList.add('cell-badge');
+                            badge.innerText = member.power;
+                            cell.appendChild(badge);
+
+                            // Hover details binding
+                            cell.addEventListener('mouseenter', () => {
+                                showMemberDetails(member, r, c);
+                                highlightMemberCard(member.nickname);
+                            });
+                        } else {
+                            cell.classList.add('inactive');
+                            cell.addEventListener('mouseenter', () => {
+                                showInactiveDetails(r, c);
+                            });
+                        }
+                    }
+
+                    cell.addEventListener('mouseleave', () => {
+                        clearFocusDetails();
+                        clearCardHighlights();
+                    });
+
+                    gridContainer.appendChild(cell);
+                }
+            }
+        }
+
+        // Render scrollable member list in sidebar
+        function renderMemberList() {
+            listItemsContainer.innerHTML = '';
+            const sortedMembers = getSortedMembers();
+            const query = searchInput.value.toLowerCase().trim();
+
+            sortedMembers.forEach((member, index) => {
+                if (query && !member.nickname.toLowerCase().includes(query)) return;
+
+                const hasGridSlot = index < sortedCellPositions.length;
+                let cellPosText = 'Reserve';
+                let cellRef = null;
+
+                if (hasGridSlot) {
+                    const pos = sortedCellPositions[index];
+                    const coords = getCellCoordinates(pos.r, pos.c);
+                    cellPosText = `X:${coords.x} Y:${coords.y}`;
+                    cellRef = { r: pos.r, c: pos.c };
+                }
+
+                const item = document.createElement('div');
+                item.classList.add('member-item');
+                item.id = `member-card-${encodeURIComponent(member.nickname)}`;
+
+                item.innerHTML = `
+                    <div class="member-item-info">
+                        <div class="member-name-row">
+                            <span class="member-name" title="${member.nickname}">
+                                <span class="member-rank">#${index + 1}</span>${member.nickname}
+                            </span>
+                            <span class="member-grid-pos ${hasGridSlot ? '' : 'reserve'}">${cellPosText}</span>
+                        </div>
+                        <span class="member-stats">Power: ${member.power} &bull; Base Lvl: ${member.level}</span>
+                    </div>
+                    <div class="member-actions">
+                        <button class="btn-edit" title="Edit Power">✏️</button>
+                        <button class="btn-delete" title="Delete Member">&times;</button>
+                    </div>
+                `;
+
+                // Hover triggers grid cell highlight
+                item.addEventListener('mouseenter', () => {
+                    if (cellRef) {
+                        highlightCell(cellRef.r, cellRef.c);
+                        showMemberDetails({ ...member, rank: index + 1, dist: sortedCellPositions[index].dist }, cellRef.r, cellRef.c);
+                    }
+                });
+
+                item.addEventListener('mouseleave', () => {
+                    clearCellHighlights();
+                    clearFocusDetails();
+                });
+
+                // Edit power trigger
+                item.querySelector('.btn-edit').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const newPower = prompt(`Update Power for ${member.nickname}:`, member.power);
+                    if (newPower !== null) {
+                        const val = newPower.trim();
+                        if (val) {
+                            let powerFormatted = val.toUpperCase();
+                            if (!powerFormatted.endsWith('M') && !isNaN(parseFloat(powerFormatted))) {
+                                powerFormatted += 'M';
+                            }
+                            // Update values
+                            const idx = members.findIndex(m => m.nickname === member.nickname);
+                            if (idx !== -1) {
+                                members[idx].power = powerFormatted;
+                                saveMembers();
+                                recalculate();
+                            }
+                        }
+                    }
+                });
+
+                // Remove trigger click
+                item.querySelector('.btn-delete').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    removeMember(member.nickname);
+                });
+
+                listItemsContainer.appendChild(item);
+            });
+        }
+
+        // Remove Member from list
+        function removeMember(nickname) {
+            members = members.filter(m => m.nickname !== nickname);
+            saveMembers();
+            recalculate();
+        }
+
+        // Add Member input trigger
+        btnAddMember.addEventListener('click', () => {
+            const nick = inputNick.value.trim();
+            const power = inputPower.value.trim();
+            const lvl = inputLevel.value.trim();
+
+            if (!nick || !power || !lvl) {
+                alert('Please fill in all fields to add a member.');
+                return;
+            }
+
+            if (members.some(m => m.nickname.toLowerCase() === nick.toLowerCase())) {
+                alert('This member is already registered.');
+                return;
+            }
+
+            let powerFormatted = power.toUpperCase();
+            if (!powerFormatted.endsWith('M') && !isNaN(parseFloat(powerFormatted))) {
+                powerFormatted += 'M';
+            }
+
+            members.push({
+                nickname: nick,
+                power: powerFormatted,
+                level: lvl
+            });
+
+            saveMembers();
+            recalculate();
+
+            // Clear input fields
+            inputNick.value = '';
+            inputPower.value = '';
+            inputLevel.value = '';
+        });
+
+        // Recalculate grid mapping and statistics
+        function recalculate() {
+            renderGrid();
+            renderMemberList();
+            updateDashboardStats();
+        }
+
+        // Update counts
+        function updateDashboardStats() {
+            statRegistered.innerText = members.length;
+            
+            const maxGridSlots = sortedCellPositions.length;
+            const activeCount = Math.min(members.length, maxGridSlots);
+            const reserveCount = Math.max(0, members.length - maxGridSlots);
+
+            statActive.innerText = activeCount;
+            statReserve.innerText = reserveCount;
+            
+            if (reserveCount > 0) {
+                statReserve.style.color = '#ef4444';
+            } else {
+                statReserve.style.color = '#9ca3af';
+            }
+        }
+
+        // --- INTERACTIVE LINKING HIGHLIGHTS ---
+        
+        function highlightCell(r, c) {
+            const cell = document.getElementById(`cell-${r}-${c}`);
+            if (cell) {
+                cell.classList.add('highlighted-cell');
+            }
+        }
+
+        function clearCellHighlights() {
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.classList.remove('highlighted-cell');
+            });
+        }
+
+        function highlightMemberCard(nickname) {
+            const card = document.getElementById(`member-card-${encodeURIComponent(nickname)}`);
+            if (card) {
+                card.classList.add('highlighted');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function clearCardHighlights() {
+            document.querySelectorAll('.member-item').forEach(card => {
+                card.classList.remove('highlighted');
+            });
+        }
+
+        // --- DETAILS PANEL (RADAR FOCUS) ---
+
+        function showMemberDetails(member, r, c) {
+            focusTitle.innerText = 'Member Detected';
+            focusTitle.style.color = 'var(--cell-active-color)';
+            const coords = getCellCoordinates(r, c);
+            focusCoord.innerText = `X:${coords.x} Y:${coords.y}`;
+
+            focusBody.innerHTML = `
+                <div class="focus-row">
+                    <span class="info-label">Nickname:</span>
+                    <span class="focus-val" style="color: #ffffff; font-size: 1rem; font-weight: 700;">${member.nickname}</span>
+                </div>
+                <div class="focus-row">
+                    <span class="info-label">Alliance Rank:</span>
+                    <span class="focus-val" style="color: #eab308;">#${member.rank} of Alliance</span>
+                </div>
+                <div class="focus-row">
+                    <span class="info-label">Combat Power:</span>
+                    <span class="focus-val" style="color: #60efff;">${member.power}</span>
+                </div>
+                <div class="focus-row">
+                    <span class="info-label">Base Level:</span>
+                    <span class="focus-val">${member.level}</span>
+                </div>
+                <div class="focus-row">
+                    <span class="info-label">Distance to Center:</span>
+                    <span class="focus-val" style="font-family: monospace;">${member.dist.toFixed(2)} u</span>
+                </div>
+            `;
+        }
+
+        function showCenterDetails(r, c) {
+            focusTitle.innerText = 'Command Center';
+            focusTitle.style.color = 'var(--center-border)';
+            const coords = getCellCoordinates(r, c);
+            focusCoord.innerText = `X:${coords.x} Y:${coords.y}`;
+
+            focusBody.innerHTML = `
+                <div style="text-align: center; padding: 1rem 0;">
+                    <div style="font-weight: 700; color: var(--center-border); font-size: 1.1rem; margin-bottom: 0.4rem;">
+                        Operational Center
+                    </div>
+                    <div style="font-size: 0.8rem; color: #9ca3af; font-weight: 300; line-height: 1.4;">
+                        Central cell (Vacant/Locked). Serving as gravitational anchor for alliance distribution.
+                    </div>
+                </div>
+            `;
+        }
+
+        function showInactiveDetails(r, c) {
+            focusTitle.innerText = 'Inactive Space';
+            focusTitle.style.color = '#6b7280';
+            const coords = getCellCoordinates(r, c);
+            focusCoord.innerText = `X:${coords.x} Y:${coords.y}`;
+
+            focusBody.innerHTML = `
+                <div style="color: #6b7280; font-size: 0.8rem; text-align: center; margin-top: 1.5rem; font-weight: 300;">
+                    Empty cell. No additional members in reserve list for allocation.
+                </div>
+            `;
+        }
+
+        function clearFocusDetails() {
+            focusTitle.innerText = 'Radar Focus';
+            focusTitle.style.color = '#a5b4fc';
+            focusCoord.innerText = 'None';
+            focusBody.innerHTML = `
+                <div style="color: #6b7280; font-size: 0.85rem; text-align: center; margin-top: 2.5rem; font-weight: 300;">
+                    Hover over the grid cells or list items to inspect.
+                </div>
+            `;
+        }
+
+        // --- SHOW CONCENTRATION RINGS TOGGLE ---
+        toggleRings.addEventListener('change', () => {
+            if (toggleRings.checked) {
+                gridContainer.classList.add('show-rings');
+                ringLegendContainer.style.display = 'grid';
+            } else {
+                gridContainer.classList.remove('show-rings');
+                ringLegendContainer.style.display = 'none';
+            }
+        });
+
+        // --- FILTERING INPUTS ---
+        searchInput.addEventListener('input', () => {
+            renderMemberList();
+        });
+
+        // --- INITIALIZATION ---
+        initCellPositions();
+        recalculate();
+        
+        // Dynamically initialize the static center coordinate label
+        const centerCoords = getCellCoordinates(CENTER_ROW, CENTER_COL);
+        lblCenterCoord.innerText = `X:${centerCoords.x} Y:${centerCoords.y}`;
+    </script>
+</body>
+</html>
