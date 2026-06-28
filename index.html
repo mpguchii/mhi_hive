@@ -88,12 +88,12 @@
             text-shadow: 0 0 12px rgba(58, 222, 124, 0.3);
         }
 
-        /* --- APP LAYOUT (2 COLUMNS since list is in drawer) --- */
+        /* --- APP LAYOUT (Expanded container width) --- */
         .app-container {
             width: 100%;
-            max-width: 1100px; /* Centered narrow container for matrix focus */
+            max-width: 1300px; /* Increased from 1100px to allow larger layout */
             display: grid;
-            grid-template-columns: 1fr 320px;
+            grid-template-columns: 1fr 340px;
             gap: 1.5rem;
             align-items: start;
             z-index: 1;
@@ -173,7 +173,6 @@
             flex-direction: column;
             gap: 1.2rem;
             box-shadow: 10px 0 30px rgba(0, 0, 0, 0.6);
-            /* Removed backdrop-filter to fix rendering blur bug on inputs and text */
         }
 
         .editor-container.open {
@@ -210,15 +209,14 @@
             box-shadow: 0 4px 15px rgba(58, 222, 124, 0.2);
         }
 
-        /* Dark backdrop overlay */
+        /* Dark backdrop overlay (Removed backdrop-filter to prevent blurring the background grid) */
         .sidebar-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.35); /* Solid transparent overlay */
             z-index: 99;
             opacity: 0;
             pointer-events: none;
@@ -463,7 +461,7 @@
             grid-template-columns: repeat(9, 1fr);
             gap: 8px;
             width: 100%;
-            max-width: 680px; /* Increased from 440px to enlarge grid cells */
+            max-width: 680px; /* Perfectly sized grid that fits viewport height */
             aspect-ratio: 9 / 11;
             margin: 0 auto;
             position: relative;
@@ -483,9 +481,6 @@
             transition: var(--transition-smooth);
             position: relative;
             z-index: 1;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
         }
 
         /* Inactive common cell */
@@ -498,21 +493,41 @@
 
         /* Active common cell (Member Present) */
         .cell.active {
-            background-color: rgba(255, 255, 255, 0.01);
-            background-image: url('cell_icon.png');
-            opacity: 0.7;
-            filter: grayscale(35%) brightness(0.95);
+            background-color: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--panel-border);
+            position: relative;
+        }
+
+        /* Background image pseudo-element to isolate brightness/grayscale filters from text overlays */
+        .cell.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('cell_icon.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.65;
+            filter: grayscale(35%) brightness(0.95);
+            z-index: 1;
+            border-radius: 6px;
+            transition: var(--transition-smooth);
         }
 
         /* Hover on active cells */
         .cell.active:hover {
-            opacity: 0.95;
-            filter: grayscale(0%) brightness(1.15);
             border-color: var(--cell-active-color) !important;
             box-shadow: 0 0 14px var(--cell-active-glow) !important;
             transform: scale(1.08);
             z-index: 5;
+        }
+
+        .cell.active:hover::before {
+            opacity: 0.95;
+            filter: grayscale(0%) brightness(1.15);
         }
 
         /* Highlighted cell by list hover */
@@ -520,15 +535,20 @@
             transform: scale(1.1) !important;
             border-color: #ffffff !important;
             box-shadow: 0 0 25px rgba(255, 255, 255, 0.75) !important;
+            z-index: 10 !important;
+        }
+        .cell.highlighted-cell::before {
             filter: grayscale(0%) brightness(1.1) !important;
             opacity: 1 !important;
-            z-index: 10 !important;
         }
 
         /* Central Vacant Cell (Robot/Command Center) */
         .cell.vacant {
             background-color: rgba(255, 60, 0, 0.05);
             background-image: url('center_icon.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             border: 2px solid var(--center-border) !important;
             box-shadow: 0 0 15px var(--center-glow);
             cursor: not-allowed;
@@ -551,7 +571,7 @@
             }
         }
 
-        /* Responsive cell text overlays - enlarged fonts for readability */
+        /* Responsive cell text overlays - enlarged fonts for readability and isolated z-index */
         .cell-name-badge {
             position: absolute;
             top: 3px;
@@ -571,7 +591,7 @@
             text-overflow: ellipsis;
             border: 0.5px solid rgba(255, 159, 0, 0.3);
             line-height: 1.2;
-            z-index: 2;
+            z-index: 2; /* Render above background filter */
         }
 
         .cell-stats-badge {
@@ -590,7 +610,7 @@
             text-align: center;
             border: 0.5px solid rgba(58, 222, 124, 0.3);
             line-height: 1.2;
-            z-index: 2;
+            z-index: 2; /* Render above background filter */
         }
 
         /* Mobile overrides for cell badges */
