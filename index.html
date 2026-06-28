@@ -83,6 +83,16 @@
                 grid-template-columns: 1fr;
                 gap: 1.5rem;
             }
+            .grid-panel {
+                order: 1; /* Grid on top in mobile */
+            }
+            .stats-container {
+                order: 2; /* Stats panel in the middle */
+            }
+            .editor-container {
+                order: 3; /* Editor panel at the bottom */
+                max-height: none !important;
+            }
         }
 
         /* --- PANELS (GLASSMORPHISM) --- */
@@ -128,12 +138,6 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
-        }
-
-        @media (max-width: 1200px) {
-            .editor-container {
-                max-height: none;
-            }
         }
 
         /* Search input */
@@ -337,6 +341,13 @@
             padding: 1.8rem;
         }
 
+        @media (max-width: 600px) {
+            .grid-panel {
+                padding: 0.8rem;
+                border-radius: 16px;
+            }
+        }
+
         .matrix-grid {
             display: grid;
             grid-template-columns: repeat(9, 1fr);
@@ -346,6 +357,12 @@
             aspect-ratio: 9 / 11;
             margin: 0 auto;
             position: relative;
+        }
+
+        @media (max-width: 600px) {
+            .matrix-grid {
+                gap: 4px;
+            }
         }
 
         /* --- CELLS --- */
@@ -373,14 +390,14 @@
         .cell.active {
             background-color: rgba(255, 255, 255, 0.02);
             background-image: url('cell_icon.png');
-            opacity: 0.55;
-            filter: grayscale(45%) brightness(0.9);
+            opacity: 0.65;
+            filter: grayscale(35%) brightness(0.95);
             border: 1px solid var(--cell-inactive-border);
         }
 
         /* Hover on active cells */
         .cell.active:hover {
-            opacity: 0.9;
+            opacity: 0.95;
             filter: grayscale(0%) brightness(1.1);
             border-color: var(--cell-active-color) !important;
             box-shadow: 0 0 14px var(--cell-active-glow) !important;
@@ -424,22 +441,77 @@
             }
         }
 
-        /* Cell power label overlay */
-        .cell-badge {
+        /* Responsive cell text overlays */
+        .cell-name-badge {
             position: absolute;
-            bottom: 2px;
+            top: 2px;
+            left: 2px;
             right: 2px;
             background: rgba(0, 0, 0, 0.75);
+            color: #e5e7eb;
+            font-size: 0.52rem;
+            font-weight: 600;
+            padding: 1px 2px;
+            border-radius: 3px;
+            pointer-events: none;
+            font-family: var(--font-main);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.1;
+            z-index: 2;
+        }
+
+        .cell-stats-badge {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.8);
             color: #ffffff;
-            font-size: 0.58rem;
+            font-size: 0.52rem;
             font-weight: 700;
-            padding: 1px 3px;
+            padding: 1px 2px;
             border-radius: 3px;
             pointer-events: none;
             font-family: monospace;
-            backdrop-filter: blur(2px);
-            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            text-align: center;
+            border: 0.5px solid rgba(255, 255, 255, 0.1);
+            line-height: 1.1;
             z-index: 2;
+        }
+
+        /* Mobile overrides for cell badges */
+        @media (max-width: 600px) {
+            .cell-name-badge {
+                font-size: 0.48rem;
+                padding: 0px 1px;
+                top: 1px;
+                left: 1px;
+                right: 1px;
+            }
+            .cell-stats-badge {
+                font-size: 0.46rem;
+                padding: 0px 1px;
+                bottom: 1px;
+                left: 1px;
+                right: 1px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .cell-name-badge {
+                display: none; /* Hide nickname on very small mobile to avoid layout crowding */
+            }
+            .cell-stats-badge {
+                font-size: 0.42rem;
+                padding: 0px;
+                left: 0.5px;
+                right: 0.5px;
+                bottom: 0.5px;
+            }
         }
 
         /* Concentration rings mode activated */
@@ -823,10 +895,6 @@
         const CENTER_COL = 4;
 
         // Helper to calculate custom game coordinates
-        // row: 0-indexed (0 to 10), col: 0-indexed (0 to 8)
-        // bottom-most row 11 (r=10) col 1 (c=0) -> X: 554, Y: 450
-        // bottom-most row 11 (r=10) col 2 (c=1) -> X: 557, Y: 447
-        // row 10 (r=9) col 1 (c=0) -> X: 554, Y: 450
         function getCellCoordinates(r, c) {
             const x = 554 + 3 * c;
             const y = 450 - 3 * c;
@@ -860,11 +928,11 @@
             return isNaN(val) ? 0 : val;
         }
 
-        // Calculate member combined strength score
+        // Calculate member strength score prioritizing Level first, Power second (tie breaker)
         function getMemberScore(member) {
             const powerNum = parsePower(member.power);
             const lvlNum = parseInt(member.level) || 0;
-            return (powerNum * 1000) + lvlNum;
+            return (lvlNum * 1000) + powerNum;
         }
 
         // Returns members sorted by score descending
@@ -957,11 +1025,18 @@
                             cell.style.setProperty('--ring-color', ringColor);
                             cell.style.setProperty('--ring-color-glow', ringGlow);
 
-                            // Add power overlay label
-                            const badge = document.createElement('span');
-                            badge.classList.add('cell-badge');
-                            badge.innerText = member.power;
-                            cell.appendChild(badge);
+                            // Add name overlay badge
+                            const nameBadge = document.createElement('span');
+                            nameBadge.classList.add('cell-name-badge');
+                            nameBadge.innerText = member.nickname;
+                            cell.appendChild(nameBadge);
+
+                            // Add stats overlay badge (e.g. L27 • 65.0)
+                            const statsBadge = document.createElement('span');
+                            statsBadge.classList.add('cell-stats-badge');
+                            const cleanPower = member.power.replace('M', '');
+                            statsBadge.innerText = `L${member.level} • ${cleanPower}`;
+                            cell.appendChild(statsBadge);
 
                             // Hover details binding
                             cell.addEventListener('mouseenter', () => {
@@ -1018,7 +1093,7 @@
                             </span>
                             <span class="member-grid-pos ${hasGridSlot ? '' : 'reserve'}">${cellPosText}</span>
                         </div>
-                        <span class="member-stats">Power: ${member.power} &bull; Base Lvl: ${member.level}</span>
+                        <span class="member-stats">Base Lvl: ${member.level} &bull; Power: ${member.power}</span>
                     </div>
                     <div class="member-actions">
                         <button class="btn-edit" title="Edit Power">✏️</button>
@@ -1186,12 +1261,12 @@
                     <span class="focus-val" style="color: #eab308;">#${member.rank} of Alliance</span>
                 </div>
                 <div class="focus-row">
-                    <span class="info-label">Combat Power:</span>
-                    <span class="focus-val" style="color: #60efff;">${member.power}</span>
-                </div>
-                <div class="focus-row">
                     <span class="info-label">Base Level:</span>
                     <span class="focus-val">${member.level}</span>
+                </div>
+                <div class="focus-row">
+                    <span class="info-label">Combat Power:</span>
+                    <span class="focus-val" style="color: #60efff;">${member.power}</span>
                 </div>
                 <div class="focus-row">
                     <span class="info-label">Distance to Center:</span>
