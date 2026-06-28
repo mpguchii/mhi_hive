@@ -1269,7 +1269,7 @@ const CENTER_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAATwAAAEeCAYAAA
                 if (pos) {
                     const cellEl = document.getElementById(`cell-${pos.r}-${pos.c}`);
                     if (cellEl) cellEl.classList.add('highlighted-cell');
-                    showMemberDetails({ ...member, rank: index+1, dist: pos.dist }, pos.r, pos.c, false);
+                    showMemberDetails({ ...member, rank: index+1, dist: pos.dist }, pos.r, pos.c, true);
                 }
             });
             card.addEventListener('mouseleave', () => {
