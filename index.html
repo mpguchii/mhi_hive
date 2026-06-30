@@ -215,6 +215,35 @@
             align-items: center;
             justify-content: space-between;
         }
+        .grid-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hud-select {
+            background: rgba(8, 11, 14, 0.85);
+            border: 1px solid var(--lw-border);
+            border-left: 2px solid var(--lw-orange);
+            color: #d0dce8;
+            font-family: var(--font-hud);
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .hud-select:hover, .hud-select:focus {
+            border-color: var(--lw-orange);
+            background: rgba(17, 24, 32, 0.95);
+            box-shadow: 0 0 8px rgba(232, 130, 12, 0.2);
+        }
+        .hud-select option {
+            background: #0d1117;
+            color: #d0dce8;
+        }
 
         .section-label {
             font-family: var(--font-hud);
@@ -902,10 +931,18 @@
     <!-- GRID PANEL -->
     <div class="grid-panel">
         <div class="grid-header">
-            <span class="section-label">Tactical Hive — 9×11</span>
-            <div class="grid-stats-row">
-                <span class="stat-chip">Deployed: <b id="stat-deployed">0</b></span>
-                <span class="stat-chip">Reserve: <b id="stat-reserve">0</b></span>
+            <span class="section-label">Tactical Hive  9×11</span>
+            <div class="grid-header-controls">
+                <select id="allocation-select" class="hud-select" onchange="changeAllocationAlgorithm(this.value)" title="Choose Sorting Strategy">
+                    <option value="concentric-desc">Strong Center (Default)</option>
+                    <option value="concentric-asc">Strong Shield (Weak Center)</option>
+                    <option value="buddy-interleaved">Buddy System (Interleaved)</option>
+                    <option value="alphabetical">Alphabetical</option>
+                </select>
+                <div class="grid-stats-row">
+                    <span class="stat-chip">Deployed: <b id="stat-deployed">0</b></span>
+                    <span class="stat-chip">Reserve: <b id="stat-reserve">0</b></span>
+                </div>
             </div>
         </div>
         <div class="matrix-wrap">
@@ -1093,6 +1130,7 @@ const CENTER_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAA
         }
         let members = JSON.parse(localStorage.getItem('alliance_members')) || [...defaultMembers];
     let currentTab = 'focus';
+    let currentAlgorithm = 'concentric-desc';
     let sortedCellPositions = [];
     let currentGridMap = [];
 
@@ -1151,7 +1189,36 @@ const CENTER_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAA
         return parseInt(m.level) * 1000 + parsePower(m.power);
     }
     function getSorted() {
-        return [...members].sort((a, b) => getScore(b) - getScore(a));
+        const list = [...members];
+        if (currentAlgorithm === 'concentric-desc') {
+            return list.sort((a, b) => getScore(b) - getScore(a));
+        } else if (currentAlgorithm === 'concentric-asc') {
+            return list.sort((a, b) => getScore(a) - getScore(b));
+        } else if (currentAlgorithm === 'buddy-interleaved') {
+            const sortedByScore = list.sort((a, b) => getScore(b) - getScore(a));
+            const alternated = [];
+            let left = 0, right = sortedByScore.length - 1;
+            while (left <= right) {
+                if (left === right) {
+                    alternated.push(sortedByScore[left]);
+                    break;
+                }
+                alternated.push(sortedByScore[left]);
+                alternated.push(sortedByScore[right]);
+                left++;
+                right--;
+            }
+            return alternated;
+        } else if (currentAlgorithm === 'alphabetical') {
+            return list.sort((a, b) => a.nickname.localeCompare(b.nickname));
+        }
+        return list;
+    }
+
+    function changeAllocationAlgorithm(algo) {
+        currentAlgorithm = algo;
+        localStorage.setItem('allocation_algorithm', algo);
+        recalculate();
     }
 
     // ===== INIT CELL POSITIONS (concentric order) =====
@@ -1556,6 +1623,10 @@ const CENTER_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAA
     document.getElementById('btn-export-sidebar').addEventListener('click', doExport);
 
     // ===== INIT =====
+    currentAlgorithm = localStorage.getItem('allocation_algorithm') || 'concentric-desc';
+    const algoSelect = document.getElementById('allocation-select');
+    if (algoSelect) algoSelect.value = currentAlgorithm;
+
     initCellPositions();
     recalculate();
 </script>
