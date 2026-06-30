@@ -937,6 +937,7 @@
                     <option value="concentric-desc">Strong Center (Default)</option>
                     <option value="concentric-asc">Strong Shield (Weak Center)</option>
                     <option value="buddy-interleaved">Buddy System (Interleaved)</option>
+                    <option value="scattered-guard">Scatter Guard (Distributed Strong)</option>
                     <option value="alphabetical">Alphabetical</option>
                 </select>
                 <div class="grid-stats-row">
@@ -1209,6 +1210,25 @@ const CENTER_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAA
                 right--;
             }
             return alternated;
+        } else if (currentAlgorithm === 'scattered-guard') {
+            const sortedByScore = list.sort((a, b) => getScore(b) - getScore(a));
+            const total = sortedByScore.length;
+            const numStrong = Math.max(1, Math.floor(total * 0.20));
+            const strongGroup = sortedByScore.slice(0, numStrong);
+            const weakGroup = sortedByScore.slice(numStrong);
+            const result = [];
+            let strongIdx = 0, weakIdx = 0;
+            while (strongIdx < strongGroup.length || weakIdx < weakGroup.length) {
+                if (strongIdx < strongGroup.length) {
+                    result.push(strongGroup[strongIdx++]);
+                }
+                for (let k = 0; k < 4; k++) {
+                    if (weakIdx < weakGroup.length) {
+                        result.push(weakGroup[weakIdx++]);
+                    }
+                }
+            }
+            return result;
         } else if (currentAlgorithm === 'alphabetical') {
             return list.sort((a, b) => a.nickname.localeCompare(b.nickname));
         }
