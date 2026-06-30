@@ -1507,7 +1507,7 @@ const CENTER_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAA
         const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
 
         target.innerHTML = `
-        <div style="font-family:'Rajdhani','Segoe UI',sans-serif;background:#080b0e;color:#d0dce8;padding:20px;width:900px;">
+        <div style="font-family:'Rajdhani','Segoe UI',sans-serif;background:#080b0e;color:#d0dce8;padding:20px;width:680px;box-sizing:border-box;">
             <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #e8820c;padding-bottom:12px;margin-bottom:16px;">
                 <div>
                     <div style="font-family:monospace;font-size:1.3rem;font-weight:900;letter-spacing:3px;color:#fff;">MHI <span style="color:#e8820c;">HIVE</span></div>
@@ -1518,16 +1518,10 @@ const CENTER_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAA
                     <div style="font-family:monospace;font-size:0.7rem;color:#e8820c;margin-top:2px;">MEMBERS: ${members.length} · DEPLOYED: ${Math.min(members.length, sortedCellPositions.length)}</div>
                 </div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 240px;gap:20px;">
-                <div>
-                    <div style="font-family:monospace;font-size:0.55rem;letter-spacing:2px;color:#5a7080;text-transform:uppercase;margin-bottom:8px;">Tactical Grid 9×11 — Concentric Allocation</div>
-                    <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:4px;aspect-ratio:9/11;">
-                        ${gridHtml}
-                    </div>
-                </div>
-                <div>
-                    <div style="font-family:monospace;font-size:0.55rem;letter-spacing:2px;color:#5a7080;text-transform:uppercase;margin-bottom:8px;">Top 30 Members — By Score</div>
-                    ${listHtml}
+            <div style="margin-bottom:8px;">
+                <div style="font-family:monospace;font-size:0.55rem;letter-spacing:2px;color:#5a7080;text-transform:uppercase;margin-bottom:8px;text-align:center;">Tactical Grid 9×11 — Concentric Allocation</div>
+                <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:4px;aspect-ratio:9/11;width:100%;">
+                    ${gridHtml}
                 </div>
             </div>
             <div style="margin-top:14px;border-top:1px solid #1e2d3d;padding-top:10px;font-family:monospace;font-size:0.6rem;color:#2d4052;text-align:center;letter-spacing:1px;">
